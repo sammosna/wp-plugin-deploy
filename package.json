@@ -1,0 +1,22 @@
+{
+  "name": "@sammosna/wp-plugin-deploy",
+  "private": false,
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "module": "index.js",
+  "keywords": [],
+  "author": "sammosna",
+  "license": "ISC",
+  "dependencies": {
+    "archiver": "^5.3.1",
+    "basic-ftp": "^5.0.2",
+    "inquirer": "^9.1.4"
+  },
+  "bin": {
+    "wp-plugin-deploy": "./index.js"
+  }
+}
