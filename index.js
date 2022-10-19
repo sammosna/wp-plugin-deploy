@@ -12,131 +12,133 @@ const {
 const ftp = require("basic-ftp");
 const archiver = require("archiver");
 
-const info = require("./info.json");
-const path = require("path");
+// console.log(process.env.PWD);
 
-(async () => {
-  if (
-    !process.env.WP_UPDATER_SERVER_BASE ||
-    !process.env.WP_UPDATER_FTP_PASS ||
-    !process.env.WP_UPDATER_FTP_USER ||
-    !process.env.WP_UPDATER_FTP_HOST
-  )
-    throw new Error(
-      "Missing FTP credentials. Please set env vars WP_UPDATER_SERVER_BASE, WP_UPDATER_FTP_PASS, WP_UPDATER_FTP_USER and WP_UPDATER_FTP_HOST"
-    );
+// const info = require("./info.json");
+// const path = require("path");
 
-  /**
-   * SETUP
-   */
+// (async () => {
+//   if (
+//     !process.env.WP_UPDATER_SERVER_BASE ||
+//     !process.env.WP_UPDATER_FTP_PASS ||
+//     !process.env.WP_UPDATER_FTP_USER ||
+//     !process.env.WP_UPDATER_FTP_HOST
+//   )
+//     throw new Error(
+//       "Missing FTP credentials. Please set env vars WP_UPDATER_SERVER_BASE, WP_UPDATER_FTP_PASS, WP_UPDATER_FTP_USER and WP_UPDATER_FTP_HOST"
+//     );
 
-  const { update } = await inquirer.prompt([
-    {
-      type: "list",
-      name: "update",
-      message: "What type of update?",
-      choices: ["Patch", "Minor", "Major"],
-      filter(val) {
-        return val.toLowerCase();
-      },
-    },
-  ]);
+//   /**
+//    * SETUP
+//    */
 
-  execSync(`git add .`);
-  execSync(`git commit -m "update: commit before update"`);
-  execSync(`pnpm version ${update}`);
+//   const { update } = await inquirer.prompt([
+//     {
+//       type: "list",
+//       name: "update",
+//       message: "What type of update?",
+//       choices: ["Patch", "Minor", "Major"],
+//       filter(val) {
+//         return val.toLowerCase();
+//       },
+//     },
+//   ]);
 
-  const pj = require("./package.json");
-  const NAME = pj.name;
-  const ZIP = `${NAME}.zip`;
+//   execSync(`git add .`);
+//   execSync(`git commit -m "update: commit before update"`);
+//   execSync(`pnpm version ${update}`);
 
-  // if (info.version === package.version)
-  //   throw new Error(
-  //     "Version is the same as the previous one. please run `pnpm version patch/minor/major`"
-  //   );
+//   const pj = require("./package.json");
+//   const NAME = pj.name;
+//   const ZIP = `${NAME}.zip`;
 
-  /**
-   * BUILD
-   */
-  console.log("Building...");
+//   // if (info.version === package.version)
+//   //   throw new Error(
+//   //     "Version is the same as the previous one. please run `pnpm version patch/minor/major`"
+//   //   );
 
-  const build = execSync("pnpm run build");
-  // console.log(build.toString());
+//   /**
+//    * BUILD
+//    */
+//   console.log("Building...");
 
-  /**
-   * INFO
-   */
+//   const build = execSync("pnpm run build");
+//   // console.log(build.toString());
 
-  info.version = pj.version;
-  info.slug = NAME;
-  info.download_url = path.join(process.env.WP_UPDATER_SERVER_BASE, NAME, ZIP);
-  info.last_updated = new Date().toISOString();
-  writeFileSync("./info.json", JSON.stringify(info, null, 2));
+//   /**
+//    * INFO
+//    */
 
-  /**
-   * PLUGIN INDEX
-   */
-  const pluginIndex = readFileSync(`./${NAME}.php`, "utf8");
-  if (!/Version: [0-9].[0-9].[0-9]*/.test(pluginIndex)) {
-    throw new Error("Version not found in php file");
-  }
-  writeFileSync(
-    `./${NAME}.php`,
-    pluginIndex.replace(
-      /Version: [0-9].[0-9].[0-9]*/,
-      `Version: ${pj.version}`
-    ),
-    "utf8"
-  );
+//   info.version = pj.version;
+//   info.slug = NAME;
+//   info.download_url = path.join(process.env.WP_UPDATER_SERVER_BASE, NAME, ZIP);
+//   info.last_updated = new Date().toISOString();
+//   writeFileSync("./info.json", JSON.stringify(info, null, 2));
 
-  /**
-   * ZIP
-   */
+//   /**
+//    * PLUGIN INDEX
+//    */
+//   const pluginIndex = readFileSync(`./${NAME}.php`, "utf8");
+//   if (!/Version: [0-9].[0-9].[0-9]*/.test(pluginIndex)) {
+//     throw new Error("Version not found in php file");
+//   }
+//   writeFileSync(
+//     `./${NAME}.php`,
+//     pluginIndex.replace(
+//       /Version: [0-9].[0-9].[0-9]*/,
+//       `Version: ${pj.version}`
+//     ),
+//     "utf8"
+//   );
 
-  // unlinkSync(ZIP);
-  const output = createWriteStream(ZIP);
-  const archive = archiver("zip", {
-    zlib: { level: 9 }, // Sets the compression level.
-  });
+//   /**
+//    * ZIP
+//    */
 
-  archive.pipe(output);
-  archive.directory(`build`, `${NAME}/build`);
-  archive.directory(`inc`, `${NAME}/inc`);
-  archive.file(`${NAME}.php`, { name: `${NAME}/${NAME}.php` });
-  archive.finalize();
-  // const zip = execSync("pnpm wp-scripts plugin-zip");
-  // console.log("zip", zip.toString());
+//   // unlinkSync(ZIP);
+//   const output = createWriteStream(ZIP);
+//   const archive = archiver("zip", {
+//     zlib: { level: 9 }, // Sets the compression level.
+//   });
 
-  /**
-   * UPLOAD
-   */
+//   archive.pipe(output);
+//   archive.directory(`build`, `${NAME}/build`);
+//   archive.directory(`inc`, `${NAME}/inc`);
+//   archive.file(`${NAME}.php`, { name: `${NAME}/${NAME}.php` });
+//   archive.finalize();
+//   // const zip = execSync("pnpm wp-scripts plugin-zip");
+//   // console.log("zip", zip.toString());
 
-  console.log("Uploading...");
+//   /**
+//    * UPLOAD
+//    */
 
-  const client = new ftp.Client();
-  client.ftp.verbose = false;
-  try {
-    await client.access({
-      host: process.env.WP_UPDATER_FTP_HOST,
-      user: process.env.WP_UPDATER_FTP_USER,
-      password: process.env.WP_UPDATER_FTP_PASS,
-      secure: false,
-    });
+//   console.log("Uploading...");
 
-    await client.cd("/");
-    await client.ensureDir(`/${NAME}/`);
-    await client.cd(`/${NAME}/`);
+//   const client = new ftp.Client();
+//   client.ftp.verbose = false;
+//   try {
+//     await client.access({
+//       host: process.env.WP_UPDATER_FTP_HOST,
+//       user: process.env.WP_UPDATER_FTP_USER,
+//       password: process.env.WP_UPDATER_FTP_PASS,
+//       secure: false,
+//     });
 
-    await client.uploadFrom(ZIP, ZIP);
-    await client.uploadFrom("info.json", "info.json");
-  } catch (err) {
-    console.log(err);
-  }
-  client.close();
+//     await client.cd("/");
+//     await client.ensureDir(`/${NAME}/`);
+//     await client.cd(`/${NAME}/`);
 
-  /**
-   * GIT
-   */
-  execSync(`git add .`);
-  execSync(`git commit -m "update: ${NAME} ${pj.version}"`);
-})();
+//     await client.uploadFrom(ZIP, ZIP);
+//     await client.uploadFrom("info.json", "info.json");
+//   } catch (err) {
+//     console.log(err);
+//   }
+//   client.close();
+
+//   /**
+//    * GIT
+//    */
+//   execSync(`git add .`);
+//   execSync(`git commit -m "update: ${NAME} ${pj.version}"`);
+// })();
