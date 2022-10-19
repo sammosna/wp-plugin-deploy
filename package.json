@@ -5,7 +5,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "publish": "publish --access public"
   },
   "module": "index.js",
   "keywords": [],
@@ -14,7 +15,7 @@
   "dependencies": {
     "archiver": "^5.3.1",
     "basic-ftp": "^5.0.2",
-    "inquirer": "^9.1.4"
+    "inquirer": "^8.0.0"
   },
   "bin": {
     "wp-plugin-deploy": "./index.js"
