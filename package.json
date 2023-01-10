@@ -1,14 +1,16 @@
 {
   "name": "wp-plugin-deploy",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "bin": "./index.js",
   "description": "This script will update the version, build the plugin, zip it and upload it to the server",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-	"pnp": "pnpm version patch && pnpm publish --access public"
+    "pnp": "pnpm version patch && pnpm publish --access public"
   },
-  "keywords": ["wordpress"],
+  "keywords": [
+    "wordpress"
+  ],
   "author": "sammosna",
   "license": "ISC",
   "dependencies": {
