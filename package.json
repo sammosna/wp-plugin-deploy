@@ -1,5 +1,5 @@
 {
-  "name": "wp-plugin-deploy",
+  "name": "@sammosna/wp-plugin-deploy",
   "version": "1.2.1",
   "bin": "./index.js",
   "description": "This script will update the version, build the plugin, zip it and upload it to the server",

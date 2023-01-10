@@ -13,5 +13,5 @@ export WP_UPDATER_FTP_HOST=your-ftp-server
 ```bash
 pnpm -g install @sammosna/wp-plugin-deploy
 cd /plugin/path
-wp-plugin-deploy
+@sammosna/wp-plugin-deploy
 ```
