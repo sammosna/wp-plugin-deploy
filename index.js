@@ -1,3 +1,10 @@
+#!/usr/bin/env node
+console.log("############################");
+console.log("#         WELCOME          #");
+console.log("# wp-plugin-deploy v" + require("./package.json").version + "  #");
+console.log("# Author: @sammosna        #");
+console.log("############################");
+
 // git add . && git commit -m "wip: wp deploy" && pnpm version patch && node deploy.js
 const inquirer = require("inquirer");
 const { execSync, exec } = require("child_process");
@@ -12,8 +19,28 @@ const {
 const ftp = require("basic-ftp");
 const archiver = require("archiver");
 
-const info = require("./info.json");
 const path = require("path");
+
+let info, pj
+
+const execOpts = {
+    cwd: process.cwd()
+}
+
+try {
+    const infoFile = readFileSync(path.resolve(process.cwd(), 'info.json'), "utf8");
+    info = JSON.parse(infoFile);
+} catch (e) {
+    throw new Error("info.json not found");
+}
+
+try {
+    const packageFile = readFileSync(path.resolve(process.cwd(), 'package.json'), "utf8");
+    pj = JSON.parse(packageFile);
+} catch (e) {
+    throw new Error("package.json not found");
+}
+
 
 (async () => {
   if (
@@ -42,11 +69,14 @@ const path = require("path");
     },
   ]);
 
-  execSync(`git add .`);
-  execSync(`git commit -m "update: commit before update"`);
-  execSync(`pnpm version ${update}`);
+  try {
+    console.log("Updating version...");
+    execSync(`git add .`, execOpts);
+    execSync(`git commit -m "update: commit before update"`, execOpts);
+    execSync(`pnpm version ${update}`, execOpts);
+    process.exit()
+  } catch (e) {}
 
-  const pj = require("./package.json");
   const NAME = pj.name;
   const ZIP = `${NAME}.zip`;
 
@@ -60,7 +90,7 @@ const path = require("path");
    */
   console.log("Building...");
 
-  const build = execSync("pnpm run build");
+  const build = execSync("pnpm run build", execOpts);
   // console.log(build.toString());
 
   /**
@@ -104,7 +134,7 @@ const path = require("path");
   archive.directory(`inc`, `${NAME}/inc`);
   archive.file(`${NAME}.php`, { name: `${NAME}/${NAME}.php` });
   archive.finalize();
-  // const zip = execSync("pnpm wp-scripts plugin-zip");
+  // const zip = execSync("pnpm wp-scripts plugin-zip", execOpts);
   // console.log("zip", zip.toString());
 
   /**
@@ -137,6 +167,6 @@ const path = require("path");
   /**
    * GIT
    */
-  execSync(`git add .`);
-  execSync(`git commit -m "update: ${NAME} ${pj.version}"`);
+  execSync(`git add .`, execOpts);
+  execSync(`git commit -m "update: ${NAME} ${pj.version}"`, execOpts);
 })();

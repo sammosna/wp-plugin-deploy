@@ -1,23 +1,19 @@
 {
-  "name": "@sammosna/wp-plugin-deploy",
-  "private": false,
-  "version": "1.0.0",
-  "description": "",
+  "name": "wp-plugin-deploy",
+  "version": "1.2.0",
+  "bin": "./index.js",
+  "description": "This script will update the version, build the plugin, zip it and upload it to the server",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "publish": "publish --access public"
+	"pnp": "pnpm version patch && pnpm publish --access public"
   },
-  "module": "index.js",
-  "keywords": [],
+  "keywords": ["wordpress"],
   "author": "sammosna",
   "license": "ISC",
   "dependencies": {
     "archiver": "^5.3.1",
     "basic-ftp": "^5.0.2",
     "inquirer": "^8.0.0"
-  },
-  "bin": {
-    "wp-plugin-deploy": "./index.js"
   }
 }
