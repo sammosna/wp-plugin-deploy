@@ -115,7 +115,8 @@ const oldVersion = pj.version; // USE PACKAGE.JSON'S VERSION AS SOURCE OF TRUTH
    */
   info.version = newVersion;
   info.slug = NAME;
-  info.download_url = path.join(process.env.WP_UPDATER_SERVER_BASE, NAME, ZIP);
+  // info.download_url = path.join(process.env.WP_UPDATER_SERVER_BASE, NAME, ZIP);
+  info.download_url = new URL(path.join(NAME, ZIP), process.env.WP_UPDATER_SERVER_BASE).href
   info.last_updated = new Date().toISOString();
   writeFileSync(path.resolve(process.cwd(), "./info.json"), JSON.stringify(info, null, 2));
 
@@ -139,6 +140,7 @@ const oldVersion = pj.version; // USE PACKAGE.JSON'S VERSION AS SOURCE OF TRUTH
    * ZIP
    */
 
+  console.log("Zipping...");
   // unlinkSync(ZIP);
   const output = createWriteStream(ZIP);
   const archive = archiver("zip", {
