@@ -21,14 +21,14 @@ const {
 } = require("fs");
 const ftp = require("basic-ftp");
 const archiver = require("archiver");
-const {update} = require("./version")
+const { update } = require("./version")
 
 const path = require("path");
 
-let info, pj
+let info, pj, newVersion
 
 const execOpts = {
-    cwd: process.cwd()
+  cwd: process.cwd()
 }
 
 try {
@@ -70,39 +70,58 @@ const oldVersion = pj.version; // USE PACKAGE.JSON'S VERSION AS SOURCE OF TRUTH
    * SETUP
    */
 
-  const { updateType } = await inquirer.prompt([
-    {
-      type: "list",
-      name: "updateType",
-      message: "What type of update?",
-      choices: ["Patch", "Minor", "Major"],
-      filter(val) {
-        return val.toLowerCase();
+  console.log(process.argv);
+  if (process.argv[2] === "--tag") {
+
+    const tagVer = process.argv[3]
+    if (!tagVer) throw new Error("Please provide version as vX.X.X")
+
+    newVersion = tagVer.slice(1)
+
+
+  } else {
+
+    const { updateType } = await inquirer.prompt([
+      {
+        type: "list",
+        name: "updateType",
+        message: "What type of update?",
+        choices: ["Patch", "Minor", "Major"],
+        filter(val) {
+          return val.toLowerCase();
+        },
       },
-    },
-  ]);
+    ]);
 
-  try {
-    console.log("Updating version...");
-    execSync(`git add .`, execOpts);
-  } catch (e) {}
+    try {
+      console.log("Updating version...");
+      execSync(`git add .`, execOpts);
+    } catch (e) { }
 
-  try {
-    execSync(`git commit -m "update: commit before update"`, execOpts);
-  } catch (e) {}
-  
-  const newVersion = update(oldVersion, updateType)
+    try {
+      execSync(`git commit -m "update: commit before update"`, execOpts);
+    } catch (e) { }
 
-  pj.version = newVersion
+    newVersion = update(oldVersion, updateType)
+
+    pj.version = newVersion
+
+  }
+
 
 
   /**
    * BUILD
    */
-  console.log("Building...");
 
-  const build = execSync("pnpm run build", execOpts);
-  // console.log(build.toString());
+  if (Object.keys(pj.scripts).includes("build")) { 
+    console.log("Building...");
+    
+    const build = execSync("pnpm run build", execOpts);
+    // console.log(build.toString());
+  } else {
+    console.log("No build script. Skipping.");
+  }
 
   /**
    * PACKAGE
@@ -123,12 +142,12 @@ const oldVersion = pj.version; // USE PACKAGE.JSON'S VERSION AS SOURCE OF TRUTH
   /**
    * PLUGIN INDEX
    */
-  const pluginIndex = readFileSync(path.resolve(process.cwd(),`./${NAME}.php`), "utf8");
+  const pluginIndex = readFileSync(path.resolve(process.cwd(), `./${NAME}.php`), "utf8");
   if (!/Version: [0-9].[0-9].[0-9]*/.test(pluginIndex)) {
     throw new Error("Version not found in php file");
   }
   writeFileSync(
-    path.resolve(process.cwd(),`./${NAME}.php`),
+    path.resolve(process.cwd(), `./${NAME}.php`),
     pluginIndex.replace(
       /Version: [0-9].[0-9].[0-9]*/,
       `Version: ${newVersion}`
